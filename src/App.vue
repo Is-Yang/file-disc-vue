@@ -1,13 +1,17 @@
 <template>
   <div id="app">
     <router-view v-if="isView"/>
+    <Loading />
   </div>
 </template>
 
 <script>
-
+import Loading from '@/components/Loading';
 export default {
   name: 'app',
+  components: {
+      Loading
+  },
   provide () {
     return {
       reload: this.reload

@@ -15,10 +15,10 @@
                     clearable
                     label="验证码"
                     placeholder="请输入短信验证码">
-                    <van-button slot="button" size="small" type="primary">获取验证码</van-button>
+                    <van-button slot="button" size="small" type="primary" :disabled="!show" @click="sendSms">{{show ? '获取验证码' : count + '秒后获取'}}</van-button>
                 </van-field>
             </van-cell-group>
-            <van-button type="primary" class="ensure">确定</van-button>
+            <van-button type="primary" class="ensure" @click="submit">确定</van-button>
         </div>
     </div>
 </template>
@@ -28,7 +28,89 @@ export default {
     data() {
         return {
             mobile: '',
-            code: ''
+            code: '',
+            show: true,
+            count: '',
+            timer: null,
+        }
+    },
+    created () {
+        localStorage.removeItem('userInfo');
+    },
+    methods: {
+        countdown() {
+            const TIME_COUNT = 60;
+            if (!this.timer) {
+                this.count = TIME_COUNT;
+                this.show = false;
+                this.timer = setInterval(() => {
+                    if (this.count > 0 && this.count <= TIME_COUNT) {
+                        this.count--;
+                    } else {
+                        this.show = true;
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
+                }, 1000)
+            }
+        },
+        sendSms() {
+            if (this.mobile == '') {
+                this.$toast("手机号不能为空");
+                return;
+            };
+            let reg=/^[1][3,4,5,7,8][0-9]{9}$/;
+            if (!reg.test(this.mobile)) {
+                this.$toast("请输入有效的手机号");
+                return;
+            }; 
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/sendSms.do', {
+                data: {
+                    phone: this.mobile
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    if (res.msg === 'SUCCESS') {
+                        this.$toast("发送成功");
+                        this.flag = true;
+                        this.countdown();
+                    } else {
+                        this.$toast("发送失败");
+                    }
+                })
+            })
+        },
+        submit() {
+            this.checkSms();
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/login.do', {
+                data: {
+                    phone: this.mobile
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    if (res.msg === 'ERROR') {
+                        this.$toast("登录失败");
+                        return;
+                    }
+                    localStorage.setItem('userInfo', JSON.stringify(res.data));
+                    this.$router.push('/home')
+                })
+            })
+        },
+        // 校验短信验证码
+        checkSms() {
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/checkSms.do', {
+                data: {
+                    checkCode: this.code
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    if (res.msg !== 'SUCCESS') {
+                        this.$toast("验证码错误");
+                        return;
+                    }
+                })
+            })
         }
     }
 }

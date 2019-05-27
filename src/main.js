@@ -10,9 +10,12 @@ import {
 } from 'vant';
 
 import component from './components/index'
+import host from './host'
 
 Vue.use(Vant);
 Vue.use(Toast);
+Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue()
+Vue.prototype.$host = host;
 Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue()
 
 Vue.config.productionTip = false

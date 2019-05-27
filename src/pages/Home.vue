@@ -1,7 +1,7 @@
 <template>
     <div class="home-wrapper">
-        <van-search placeholder="可查询文件名" v-model="search" background="#f5f5f9" />
-        <div class="main" v-if="false">
+        <van-search placeholder="可查询文件名" v-model="search" background="#f5f5f9" @search="searchFile"/>
+        <div class="main" v-if="true">
             <van-row type="flex" justify="space-between" align="center">
                 <van-col>嘻嘻嘻嘻嘻嘻</van-col>
                 <van-col class="opt-btn">
@@ -9,15 +9,15 @@
                     <a href="javascript:;">授权</a>
                 </van-col>
             </van-row>
-            
+
             <van-list class="list-wrap">
-                <van-cell>
-                    <van-row type="flex" justify="space-between" @click.native="link(item.num_iid)">
+                <van-cell v-for="(item, index) in fileList" :key="index">
+                    <van-row type="flex" justify="space-between" @click.native="link(item.folderId)">
                         <van-col class="flex">
                            <van-icon name="file" />
-                           <span>我问问</span>
+                           <span>{{item.fileName}}</span>
                         </van-col>
-                        <van-col class="right-full">
+                        <van-col>
                             <a href="javascript:;">授权</a>
                         </van-col>
                     </van-row>
@@ -25,17 +25,17 @@
             </van-list>
         </div>
 
-        <div class="main" v-if="true">
+        <div class="main" v-if="false">
             <van-row type="flex" align="center" class="bread">
                 <van-col>公司</van-col>
                 <van-col>文件名</van-col>
             </van-row>
             
             <van-list class="list-wrap">
-                <div class="flex padding-10">
+                <van-cell class="flex">
                     <van-icon name="pdf" />
                     <span>PNG文件</span>
-                </div>
+                </van-cell>
             </van-list>
         </div>
         <Footer />
@@ -49,12 +49,53 @@ export default {
             dataLoading: false,
             finished: false,
             finishedText: '暂无数据',
-            search: ''
+            search: '',
+            fileList: []
         }
     },
+    created () {
+        this.getList();  
+    },
     methods: {
-        onLoad(params = {}) {
-            
+        // 查询当前用户有权限的所有文件夹
+        getList() {
+            let res = {
+                "ret": 1,
+                "data": [
+                    {
+                        "fileId": 2,
+                        "fileName": "李四",
+                        "folderId": "2",
+                        "fileUrl": "222",
+                        "dateCreate": null
+                    },
+                    {
+                        "fileId": 1,
+                        "fileName": "张三",
+                        "folderId": "1",
+                        "fileUrl": "111",
+                        "dateCreate": null
+                    }
+                ],
+                "msg": "SUCCESS"
+            }
+            // $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolder.do', {
+            //     crossDomain: true,
+            //     success: ((res) => {
+                    this.fileList = res.data;
+            //     })
+            // })
+        },
+        searchFile() {
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFile.do', {
+                data: {
+                    fileName: this.search
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    console.log(res);
+                })
+            })
         }
     }
 }
