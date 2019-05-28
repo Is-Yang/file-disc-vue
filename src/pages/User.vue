@@ -28,9 +28,6 @@ export default {
 </script>
 
 <style lang="less">
-body {
-    background-color: #fff !important;
-}
 .user-index {
     padding: 20% 2rem;
 

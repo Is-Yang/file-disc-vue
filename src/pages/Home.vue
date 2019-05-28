@@ -1,7 +1,7 @@
 <template>
     <div class="home-wrapper">
         <van-search placeholder="可查询文件名" v-model="search" background="#f5f5f9" @search="searchFile"/>
-        <div class="main" v-if="true">
+        <div class="main" v-if="!folder">
             <van-row type="flex" justify="space-between" align="center">
                 <van-col>嘻嘻嘻嘻嘻嘻</van-col>
                 <van-col class="opt-btn">
@@ -12,9 +12,9 @@
 
             <van-list class="list-wrap">
                 <van-cell v-for="(item, index) in fileList" :key="index">
-                    <van-row type="flex" justify="space-between" @click.native="link(item.folderId)">
+                    <van-row type="flex" justify="space-between" @click.native="linkFolder(item.folderId, item.fileName)">
                         <van-col class="flex">
-                           <van-icon name="file" />
+                           <van-icon name="file" class="van-icon-set" />
                            <span>{{item.fileName}}</span>
                         </van-col>
                         <van-col>
@@ -25,16 +25,16 @@
             </van-list>
         </div>
 
-        <div class="main" v-if="false">
+        <div class="main" v-if="folder">
             <van-row type="flex" align="center" class="bread">
-                <van-col>公司</van-col>
+                <van-col @click="parentFile">公司</van-col>
                 <van-col>文件名</van-col>
             </van-row>
             
             <van-list class="list-wrap">
-                <van-cell class="flex">
-                    <van-icon name="pdf" />
-                    <span>PNG文件</span>
+                <van-cell class="flex" v-for="(item, index) in folderList" :key="index">
+                    <van-icon name="pdf" class="van-icon-set" />
+                    <span>{{item.fileName}}</span>
                 </van-cell>
             </van-list>
         </div>
@@ -50,7 +50,9 @@ export default {
             finished: false,
             finishedText: '暂无数据',
             search: '',
-            fileList: []
+            fileList: [],
+            folder: false,
+            folderList: []
         }
     },
     created () {
@@ -96,6 +98,36 @@ export default {
                     console.log(res);
                 })
             })
+        },
+        linkFolder(folderId, fileName) {
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolderFile.do', {
+                data: {
+                    folderId: folderId
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    let data = {
+                        "ret": 1,
+                        "data": [
+                            {
+                                "fileId": 1,
+                                "fileName": "张三",
+                                "folderId": "1",
+                                "fileUrl": "111",
+                                "dateCreate": null
+                            }
+                        ],
+                        "msg": "SUCCESS"
+                    }
+                    this.folderList = data.data;
+                    this.folder = true;
+                    console.log(res);
+                })
+            })
+        },
+        // 父级文件
+        parentFile() {
+
         }
     }
 }
@@ -106,27 +138,6 @@ export default {
         @fontColor: #0079f3;
         .van-search .van-cell {
             background-color: #fff;
-        }
-        .van-icon {
-            width: 2rem;
-            height: 2rem;
-            background-size: contain;
-            background-repeat: no-repeat;
-            vertical-align: middle;
-            display: inline-block;
-            margin-right: 1rem;
-        }
-        .van-icon-file {
-            background-image: url("../assets/image/icon_file.png");
-        }
-        .van-icon-png {
-            // background-image: url("../assets/image/icon_png.png");
-        }
-        .van-icon-pdf {
-            background-image: url("../assets/image/icon_pdf.png");
-        }
-        .van-icon-word {
-            background-image: url("../assets/image/icon_word.png");
         }
         .bread {
             padding: 1rem;
