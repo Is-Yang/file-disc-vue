@@ -9,7 +9,7 @@
                     placeholder="请输入姓名"
                 />
                 <van-field
-                    v-model="mpbile"
+                    v-model="phone"
                     label="手机号"
                     placeholder="请输入手机号"
                 />
@@ -40,7 +40,7 @@
             </van-list>
         </div>
 
-        <van-button class="handle-btn-fixed" square type="primary">确定</van-button>
+        <van-button class="handle-btn-fixed" square type="primary" @click="handleImpower">确定</van-button>
     </div>
 </template>
 
@@ -49,7 +49,7 @@ export default {
     data() {
         return {
             username: '',
-            mpbile: '',
+            phone: '',
             radio: '1',
             fileList: []
         }
@@ -58,6 +58,20 @@ export default {
         this.getList();
     },
     methods: {
+        handleImpower() {
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/addUser.do', {
+                data: {
+                    userName: this.username,
+                    phone: this.phone
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    if (res.msg == 'ERROR' && res.data) {
+                        this.$toast(res.data);
+                    }
+                })
+            })
+        },
         impowerFolder() {
 
         },

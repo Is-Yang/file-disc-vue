@@ -1,15 +1,19 @@
 <template>
     <div class="user-index">
-        <div class="flex flex-align-center">
-            <img src="" class="photo"/>
-            <span>王先生</span>
-        </div>
+        <h2 class="txt-center">个人信息</h2>
         <van-cell-group class="user-info">
-            <van-field
+            <van-cell v-if="!inputUserName" title="用户名" v-model="username" is-link @click="inputUserName = true" />
+            <van-field v-if="inputUserName"
+                v-model="username"
+                label="用户名">
+                <a href="javascript:;" slot="button" @click="updateUsers">保存</a>
+            </van-field>
+
+            <van-cell v-if="!inputMobile" title="手机号" v-model="mobile" is-link @click="inputMobile = true" />
+             <van-field v-if="inputMobile"
                 v-model="mobile"
-                label="手机号"
-            >
-                <a href="javascript:;" slot="button">修改</a>
+                label="手机号">
+                <a href="javascript:;" slot="button" @click="updateUsers">保存</a>
             </van-field>
         </van-cell-group>
         <p class="copyright">copyright 返晨</p>
@@ -21,7 +25,40 @@
 export default {
     data() {
         return {
-            mobile: ''
+            username: '',
+            mobile: '',
+            userId: '',
+            inputUserName: false,
+            inputMobile: false,
+        }
+    },
+    created () {
+        let userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (userInfo) {
+            this.username = userInfo.userName;
+            this.mobile = userInfo.phone;
+            this.userId = userInfo.userId;
+        }
+    },
+    methods: {
+        updateUsers(){
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFile.do', {
+                data: {
+                    userName: this.username,
+                    userId: this.userId,
+                    phone: this.mobile
+                },
+                crossDomain: true,
+                success: ((res) => {
+                    if (res.msg == 'ERROR' && res.data) {
+                        this.$toast(res.data);
+                    } else {
+                        this.$toast('修改成功');
+                    }
+                    this.inputUserName = false;
+                    this.inputMobile = false;
+                })
+            })
         }
     }
 }
@@ -29,23 +66,28 @@ export default {
 
 <style lang="less">
 .user-index {
-    padding: 20% 2rem;
+    padding: 15% 1rem;
 
     .photo {
         width: 5rem;
         height: 5rem;
-        border: 1px solid #eee;
+        border: 1px solid #ccc;
         display: inline-block;
         border-radius: 50%;
         margin-right: 1rem;
+        line-height: 5rem;
+        font-size: 4rem;
+        text-align: center;
     }
 
     .user-info {
-        border-bottom: 1px solid #e8e8e8;
         margin-top: 3rem;
 
         &::after {
             border: none;
+        }
+        a {
+            color: #0079f3;
         }
     }
 

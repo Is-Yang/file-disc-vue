@@ -52,41 +52,67 @@ export default {
             search: '',
             fileList: [],
             folder: false,
-            folderList: []
+            folderList: [],
+            userLevel: ''
+        }
+    },
+    watch: {
+        '$route' (to, from) {
+            let route = this.$route;
+            if (route.query && route.query.folder) {
+                this.folder = true;
+                this.getFolderList(route.query.folder);
+            } else {
+                this.folder = false;
+                this.getList();
+            }
         }
     },
     created () {
+        this.init();
         this.getList();  
     },
     methods: {
+        init() {
+            let userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            if (userInfo && userInfo.userLevel) {
+                if (userInfo.userLevel == 'supAdmin') {   // 超级管理员
+                    this.userLevel = 1;
+                } else if (userInfo.userLevel == 'comAdmin') {   // 普通管理员
+                    this.userLevel = 2;
+                } else { // 普通员工
+                    this.userLevel = 3;
+                }
+            }
+        },
         // 查询当前用户有权限的所有文件夹
         getList() {
-            let res = {
-                "ret": 1,
-                "data": [
-                    {
-                        "fileId": 2,
-                        "fileName": "李四",
-                        "folderId": "2",
-                        "fileUrl": "222",
-                        "dateCreate": null
-                    },
-                    {
-                        "fileId": 1,
-                        "fileName": "张三",
-                        "folderId": "1",
-                        "fileUrl": "111",
-                        "dateCreate": null
-                    }
-                ],
-                "msg": "SUCCESS"
-            }
-            // $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolder.do', {
-            //     crossDomain: true,
-            //     success: ((res) => {
+            // let res = {
+            //     "ret": 1,
+            //     "data": [
+            //         {
+            //             "fileId": 2,
+            //             "fileName": "李四",
+            //             "folderId": "2",
+            //             "fileUrl": "222",
+            //             "dateCreate": null
+            //         },
+            //         {
+            //             "fileId": 1,
+            //             "fileName": "张三",
+            //             "folderId": "1",
+            //             "fileUrl": "111",
+            //             "dateCreate": null
+            //         }
+            //     ],
+            //     "msg": "SUCCESS"
+            // }
+            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolder.do', {
+                crossDomain: true,
+                success: ((res) => {
                     this.fileList = res.data;
-            //     })
-            // })
+                })
+            })
         },
         searchFile() {
             $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFile.do', {
@@ -99,7 +125,7 @@ export default {
                 })
             })
         },
-        linkFolder(folderId, fileName) {
+        getFolderList(folderId) {
             $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolderFile.do', {
                 data: {
                     folderId: folderId
@@ -120,9 +146,16 @@ export default {
                         "msg": "SUCCESS"
                     }
                     this.folderList = data.data;
-                    this.folder = true;
-                    console.log(res);
+                    
                 })
+            })
+        },
+        linkFolder(folderId, fileName) {
+            this.$router.push({
+                path: '/home',
+                query: {
+                    folder: folderId
+                }
             })
         },
         // 父级文件

@@ -81,24 +81,31 @@ export default {
             })
         },
         submit() {
-            this.checkSms();
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/login.do', {
-                data: {
-                    phone: this.mobile
-                },
-                crossDomain: true,
-                success: ((res) => {
-                    if (res.msg === 'ERROR') {
-                        this.$toast("登录失败");
-                        return;
-                    }
-                    localStorage.setItem('userInfo', JSON.stringify(res.data));
-                    this.$router.push('/home')
+            if(this.checkSms()) {
+                this.$eventHub.$emit('loading', true);
+                $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/login.do', {
+                    data: {
+                        phone: this.mobile
+                    },
+                    crossDomain: true,
+                    success: ((res) => {
+                        if (res.msg === 'ERROR') {
+                            this.$toast("登录失败");
+                            return;
+                        }
+                        localStorage.setItem('userInfo', JSON.stringify(res.data));
+                        this.$eventHub.$emit('loading', false);
+                        this.$router.push('/home')
+                    })
                 })
-            })
+            }
         },
         // 校验短信验证码
         checkSms() {
+            if (this.code == '') {
+                this.$toast("请获取验证码");
+                return false;
+            };
             $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/checkSms.do', {
                 data: {
                     checkCode: this.code
@@ -107,10 +114,11 @@ export default {
                 success: ((res) => {
                     if (res.msg !== 'SUCCESS') {
                         this.$toast("验证码错误");
-                        return;
+                        return false;
                     }
                 })
             })
+            return true;
         }
     }
 }

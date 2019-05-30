@@ -28,7 +28,7 @@
            </tbody>
        </table>
        
-       <van-button class="handle-btn-fixed-fixed" square type="primary">新增授权</van-button>
+       <van-button class="handle-btn-fixed" square type="primary">新增授权</van-button>
     </div>
 </template>
 
