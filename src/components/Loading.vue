@@ -1,6 +1,9 @@
 <template>
-    <div class="loading" v-if="loading">
-        <van-loading type="spinner" color="white" />
+    <div v-if="loading">
+        <div class="mask"></div>
+        <div class="loading">
+            <van-loading type="spinner" color="white" />
+        </div>
     </div>
 </template>
 

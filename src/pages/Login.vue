@@ -17,9 +17,27 @@
                     placeholder="请输入短信验证码">
                     <van-button slot="button" size="small" type="primary" :disabled="!show" @click="sendSms">{{show ? '获取验证码' : count + '秒后获取'}}</van-button>
                 </van-field>
+                <van-field
+                    readonly
+                    clickable
+                    label="公司"
+                    :value="companyName"
+                    placeholder="请选择公司"
+                    @click="showPicker = true"
+                />
+                
             </van-cell-group>
             <van-button type="primary" class="ensure" @click="submit">确定</van-button>
         </div>
+        <van-popup v-model="showPicker" position="bottom">
+            <van-picker
+                show-toolbar
+                :columns="columns"
+                value-key="companyName"
+                @cancel="showPicker = false"
+                @confirm="onConfirm"
+            />
+        </van-popup>
     </div>
 </template>
 
@@ -29,15 +47,28 @@ export default {
         return {
             mobile: '',
             code: '',
+            companyId: '',
+            companyName: '',
             show: true,
             count: '',
             timer: null,
+            showPicker: false,
+            columns: ['暂无数据']
         }
     },
     created () {
         localStorage.removeItem('userInfo');
     },
     methods: {
+        onConfirm(value) {
+            if (value == '暂无数据') {
+                this.company = '';
+            } else {
+                this.companyName = value.companyName
+                this.companyId = value.companyId;
+            }
+            this.showPicker = false;
+        },
         countdown() {
             const TIME_COUNT = 60;
             if (!this.timer) {
@@ -64,16 +95,21 @@ export default {
                 this.$toast("请输入有效的手机号");
                 return;
             }; 
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/sendSms.do', {
+            this.$eventHub.$emit('loading', true);
+            $.ajax(this.$host.http_api + '/fcCommon/sendSms.do', {
                 data: {
                     phone: this.mobile
                 },
                 crossDomain: true,
                 success: ((res) => {
+                    this.$eventHub.$emit('loading', false);
                     if (res.msg === 'SUCCESS') {
                         this.$toast("发送成功");
                         this.flag = true;
                         this.countdown();
+                        if (res.data && res.data.length > 0) {
+                            this.columns = res.data;
+                        }
                     } else {
                         this.$toast("发送失败");
                     }
@@ -83,9 +119,10 @@ export default {
         submit() {
             if(this.checkSms()) {
                 this.$eventHub.$emit('loading', true);
-                $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/login.do', {
+                $.ajax(this.$host.http_api + '/fcCommon/login.do', {
                     data: {
-                        phone: this.mobile
+                        phone: this.mobile,
+                        companyId: this.companyId
                     },
                     crossDomain: true,
                     success: ((res) => {
@@ -106,12 +143,17 @@ export default {
                 this.$toast("请获取验证码");
                 return false;
             };
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/checkSms.do', {
+            $.ajax(this.$host.http_api + '/fcCommon/checkSms.do', {
                 data: {
-                    checkCode: this.code
+                    checkCode: this.code,
+                    companyId: this.companyId
                 },
+                // xhrFields: { 
+                //     withCredentials: true //允许带上凭据
+                // },
                 crossDomain: true,
                 success: ((res) => {
+                    console.log(res);
                     if (res.msg !== 'SUCCESS') {
                         this.$toast("验证码错误");
                         return false;
@@ -132,7 +174,7 @@ export default {
         left: 0;
         bottom: 0;
         right: 0;
-        z-index: 9;
+        z-index: 1;
         background-color: #fff;
 
         .title {
@@ -149,7 +191,7 @@ export default {
             position: absolute;
             top: 30%;
             transform: translateY(-30%);
-            z-index: 9;
+            z-index: 1;
             text-align: center;
         }
     }

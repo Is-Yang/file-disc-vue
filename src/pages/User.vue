@@ -2,6 +2,11 @@
     <div class="user-index">
         <h2 class="txt-center">个人信息</h2>
         <van-cell-group class="user-info">
+            <van-field
+                :value="companyName"
+                label="公司名"
+                disabled
+            />
             <van-cell v-if="!inputUserName" title="用户名" v-model="username" is-link @click="inputUserName = true" />
             <van-field v-if="inputUserName"
                 v-model="username"
@@ -16,6 +21,7 @@
                 <a href="javascript:;" slot="button" @click="updateUsers">保存</a>
             </van-field>
         </van-cell-group>
+        <van-button type="primary" class="logout" plain @click="logout">退出登陆</van-button>
         <p class="copyright">copyright 返晨</p>
         <Footer />
     </div>
@@ -37,12 +43,18 @@ export default {
         if (userInfo) {
             this.username = userInfo.userName;
             this.mobile = userInfo.phone;
+            this.companyName = userInfo.companyName;
             this.userId = userInfo.userId;
         }
     },
     methods: {
+        logout() {
+            localStorage.removeItem('userInfo');
+            this.$router.push('/login')
+        },
         updateUsers(){
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFile.do', {
+            this.$eventHub.$emit('loading', true);
+            $.ajax(this.$host.http_api + '/fcCommon/updateUsers.do', {
                 data: {
                     userName: this.username,
                     userId: this.userId,
@@ -50,13 +62,14 @@ export default {
                 },
                 crossDomain: true,
                 success: ((res) => {
+                    this.$eventHub.$emit('loading', false);
                     if (res.msg == 'ERROR' && res.data) {
                         this.$toast(res.data);
                     } else {
                         this.$toast('修改成功');
                     }
-                    this.inputUserName = false;
-                    this.inputMobile = false;
+                    this.$set(this, 'inputUserName', false);
+                    this.$set(this, 'inputMobile', false);
                 })
             })
         }
@@ -89,6 +102,11 @@ export default {
         a {
             color: #0079f3;
         }
+    }
+
+    .logout {
+        width: 100%;
+        margin-top: 10%;
     }
 
     .copyright {

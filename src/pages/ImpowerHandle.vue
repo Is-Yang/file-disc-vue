@@ -59,7 +59,7 @@ export default {
     },
     methods: {
         handleImpower() {
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/addUser.do', {
+            $.ajax(this.$host.http_api + '/fcCommon/addUser.do', {
                 data: {
                     userName: this.username,
                     phone: this.phone
@@ -97,7 +97,7 @@ export default {
                 ],
                 "msg": "SUCCESS"
             }
-            // $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolder.do', {
+            // $.ajax(this.$host.http_api + '/fcCommon/searchFolder.do', {
             //     crossDomain: true,
             //     success: ((res) => {
                     this.fileList = res.data;

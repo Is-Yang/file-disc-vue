@@ -1,40 +1,46 @@
 <template>
     <div class="home-wrapper">
-        <van-search placeholder="可查询文件名" v-model="search" background="#f5f5f9" @search="searchFile"/>
-        <div class="main" v-if="!folder">
-            <van-row type="flex" justify="space-between" align="center">
-                <van-col>嘻嘻嘻嘻嘻嘻</van-col>
+        <van-search v-if="file" placeholder="可查询文件名" v-model="search" show-action background="#f5f5f9" @search="searchFile">
+            <div slot="action" @click="searchFile">搜索</div>
+        </van-search>
+        <div class="main" v-if="!file">
+            <van-row type="flex" v-if="companyName" justify="space-between" align="center" style="padding-top: 10px;">
+                <van-col>{{companyName}}</van-col>
                 <van-col class="opt-btn">
-                    <a href="javascript:;">更换</a>
-                    <a href="javascript:;">授权</a>
+                    <a href="javascript:;" @click="linkCompany">更换</a>
+                    <!-- <a href="javascript:;" v-if="userLevel !== 3">授权</a> --> 
                 </van-col>
             </van-row>
 
+            <!-- 文件夹 -->
             <van-list class="list-wrap">
-                <van-cell v-for="(item, index) in fileList" :key="index">
-                    <van-row type="flex" justify="space-between" @click.native="linkFolder(item.folderId, item.fileName)">
-                        <van-col class="flex">
+                <van-cell v-for="(item, index) in folderList" :key="index">
+                    <van-row type="flex" justify="space-between">
+                        <van-col span="21" class="flex" @click.native="linkFolder(item.folderId, item.folderName)">
                            <van-icon name="file" class="van-icon-set" />
-                           <span>{{item.fileName}}</span>
+                           <span>{{item.folderName}}</span>
                         </van-col>
-                        <van-col>
-                            <a href="javascript:;">授权</a>
+                        <van-col span="3">
+                            <a href="javascript:;" v-if="userLevel !== 3" class="a-link" @click.native="linkImpower()">授权</a>
                         </van-col>
                     </van-row>
                 </van-cell>
             </van-list>
         </div>
 
-        <div class="main" v-if="folder">
-            <van-row type="flex" align="center" class="bread">
-                <van-col @click="parentFile">公司</van-col>
-                <van-col>文件名</van-col>
+        <!-- 子文件 -->
+        <div class="main" v-if="file">
+            <van-row type="flex" align="center" class="bread" v-if="breadInfo.companyName">
+                <van-col @click.native="parentFile">{{breadInfo.companyName}}</van-col>
+                <van-col>{{breadInfo.folderName}}</van-col>
             </van-row>
             
             <van-list class="list-wrap">
-                <van-cell class="flex" v-for="(item, index) in folderList" :key="index">
-                    <van-icon name="pdf" class="van-icon-set" />
-                    <span>{{item.fileName}}</span>
+                <van-cell class="flex" v-for="(item, index) in fileList" :key="index">
+                    <a :href="item.fileUrl">
+                        <van-icon class="van-icon-set" :class="'van-icon-' + item.fileType" />
+                        <span>{{item.fileName}}</span>
+                    </a>
                 </van-cell>
             </van-list>
         </div>
@@ -51,28 +57,33 @@ export default {
             finishedText: '暂无数据',
             search: '',
             fileList: [],
-            folder: false,
+            file: false,
             folderList: [],
-            userLevel: ''
+            userLevel: '',
+            companyName: '',
+            breadInfo: {}
         }
     },
     watch: {
         '$route' (to, from) {
-            let route = this.$route;
-            if (route.query && route.query.folder) {
-                this.folder = true;
-                this.getFolderList(route.query.folder);
-            } else {
-                this.folder = false;
-                this.getList();
-            }
+            this.routeType();
         }
     },
     created () {
+        this.routeType();
         this.init();
-        this.getList();  
     },
     methods: {
+        routeType() {
+            let route = this.$route;
+            if (route.query && route.query.folder) {
+                this.file = true;
+                this.getFileList(route.query.folder);
+            } else {
+                this.file = false;
+                this.getList();
+            }
+        },
         init() {
             let userInfo = JSON.parse(localStorage.getItem('userInfo'));
             if (userInfo && userInfo.userLevel) {
@@ -87,65 +98,53 @@ export default {
         },
         // 查询当前用户有权限的所有文件夹
         getList() {
-            // let res = {
-            //     "ret": 1,
-            //     "data": [
-            //         {
-            //             "fileId": 2,
-            //             "fileName": "李四",
-            //             "folderId": "2",
-            //             "fileUrl": "222",
-            //             "dateCreate": null
-            //         },
-            //         {
-            //             "fileId": 1,
-            //             "fileName": "张三",
-            //             "folderId": "1",
-            //             "fileUrl": "111",
-            //             "dateCreate": null
-            //         }
-            //     ],
-            //     "msg": "SUCCESS"
-            // }
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolder.do', {
+            this.$eventHub.$emit('loading', true);
+            $.ajax(this.$host.http_api + '/fcCommon/searchFolder.do', {
                 crossDomain: true,
+                // xhrFields: { 
+                //     withCredentials: true //允许带上凭据
+                // },
+                // dataType: 'jsonp',
                 success: ((res) => {
-                    this.fileList = res.data;
+                    this.$eventHub.$emit('loading', false);
+                    if (res.msg == 'SUCCESS' && res.data) {
+                        this.companyName = res.data.companyName; 
+                        this.folderList = res.data.folders;
+                    }
                 })
             })
         },
         searchFile() {
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFile.do', {
+            this.$eventHub.$emit('loading', true);
+            $.ajax(this.$host.http_api + '/fcCommon/searchFile.do', {
                 data: {
                     fileName: this.search
                 },
                 crossDomain: true,
                 success: ((res) => {
-                    console.log(res);
+                    this.$eventHub.$emit('loading', false);
+                    if (res.msg == 'SUCCESS' && res.data) {
+                        this.fileList = res.data;
+                    }
                 })
             })
         },
-        getFolderList(folderId) {
-            $.ajax(this.$host.http_api + '/tmyq-web/fcCommon/searchFolderFile.do', {
+        getFileList(folderId) {
+            this.$eventHub.$emit('loading', true);
+            $.ajax(this.$host.http_api + '/fcCommon/searchFolderFile.do', {
                 data: {
                     folderId: folderId
                 },
                 crossDomain: true,
                 success: ((res) => {
-                    let data = {
-                        "ret": 1,
-                        "data": [
-                            {
-                                "fileId": 1,
-                                "fileName": "张三",
-                                "folderId": "1",
-                                "fileUrl": "111",
-                                "dateCreate": null
-                            }
-                        ],
-                        "msg": "SUCCESS"
+                    this.$eventHub.$emit('loading', false);
+                    if (res.msg == 'SUCCESS' && res.data) {
+                        this.breadInfo = {
+                            companyName: res.data.companyName,
+                            folderName: res.data.folderName
+                        }
+                        this.fileList = res.data.seachFile;
                     }
-                    this.folderList = data.data;
                     
                 })
             })
@@ -158,9 +157,19 @@ export default {
                 }
             })
         },
+        linkCompany() {
+            this.$router.push({
+                path: '/company'
+            })
+        },
+        linkImpower() {
+            this.$router.push({
+                path: '/impower'
+            })
+        },
         // 父级文件
         parentFile() {
-
+            this.$router.go(-1);
         }
     }
 }
@@ -178,15 +187,20 @@ export default {
             .van-col {
                 font-size: 1.4rem;
                 &::before {
-                    content: "/";
+                    content: " / ";
+                    
                 }
 
                 &:first-child {
+                    color: #1889f9;
                     &::before {
                         content: "";
                     }
                 }
             }
+        }
+        a.a-link {
+            color: @fontColor;
         }
         .main {
             padding-left: 1rem;
