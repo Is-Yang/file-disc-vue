@@ -4,7 +4,7 @@
             <div slot="action" @click="searchFile">搜索</div>
         </van-search>
         <div class="main" v-if="!file">
-            <van-row type="flex" v-if="companyName" justify="space-between" align="center" style="padding-top: 10px;">
+            <van-row type="flex" v-if="companyName" justify="space-between" align="center" class="line">
                 <van-col>{{companyName}}</van-col>
                 <van-col class="opt-btn">
                     <a href="javascript:;" @click="linkCompany">更换</a>
@@ -17,11 +17,11 @@
                 <van-cell v-for="(item, index) in folderList" :key="index">
                     <van-row type="flex" justify="space-between">
                         <van-col span="21" class="flex" @click.native="linkFolder(item.folderId, item.folderName)">
-                           <van-icon name="file" class="van-icon-set" />
-                           <span>{{item.folderName}}</span>
+                           <van-icon name="folder" class="van-icon-set" />
+                           <span class="flex1 text-over">{{item.folderName}}</span>
                         </van-col>
-                        <van-col span="3">
-                            <a href="javascript:;" v-if="userLevel !== 3" class="a-link" @click.native="linkImpower()">授权</a>
+                        <van-col span="3" class="txt-right" @click.native="linkImpower({'compayId': item.companyId})">
+                            <a href="javascript:;" v-if="userLevel !== 3" class="a-link">授权</a>
                         </van-col>
                     </van-row>
                 </van-cell>
@@ -31,15 +31,15 @@
         <!-- 子文件 -->
         <div class="main" v-if="file">
             <van-row type="flex" align="center" class="bread" v-if="breadInfo.companyName">
-                <van-col @click.native="parentFile">{{breadInfo.companyName}}</van-col>
+                <van-col @click.native="parentFile">{{breadInfo.companyName}} </van-col>
                 <van-col>{{breadInfo.folderName}}</van-col>
             </van-row>
             
             <van-list class="list-wrap">
                 <van-cell class="flex" v-for="(item, index) in fileList" :key="index">
-                    <a :href="item.fileUrl">
-                        <van-icon class="van-icon-set" :class="'van-icon-' + item.fileType" />
-                        <span>{{item.fileName}}</span>
+                    <a :href="item.fileUrl" class="flex flex-align-center">
+                        <van-icon class="van-icon-set" :name="item.fileType" />
+                        <span class="flex1 text-over">{{item.fileName}}</span>
                     </a>
                 </van-cell>
             </van-list>
@@ -162,9 +162,10 @@ export default {
                 path: '/company'
             })
         },
-        linkImpower() {
+        linkImpower(params) {
             this.$router.push({
-                path: '/impower'
+                path: '/impower',
+                query: params
             })
         },
         // 父级文件
@@ -182,13 +183,14 @@ export default {
             background-color: #fff;
         }
         .bread {
-            padding: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
             
             .van-col {
-                font-size: 1.4rem;
+                font-size: 1.5rem;
                 &::before {
-                    content: " / ";
-                    
+                    content: "/";
+                    padding: 0 3px;
                 }
 
                 &:first-child {
@@ -213,6 +215,10 @@ export default {
                     color: @fontColor;
                 }
             }
+        }
+        .line {
+            font-size: 1.5rem;
+            border-bottom: 1px solid #eee;
         }
     }
 </style>

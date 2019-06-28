@@ -27,7 +27,7 @@
                 />
                 
             </van-cell-group>
-            <van-button type="primary" class="ensure" @click="submit">确定</van-button>
+            <van-button type="primary" class="ensure" @click="submit" :disabled="companyName == '' ? true : false">确定</van-button>
         </div>
         <van-popup v-model="showPicker" position="bottom">
             <van-picker
@@ -117,50 +117,48 @@ export default {
             })
         },
         submit() {
-            if(this.checkSms()) {
-                this.$eventHub.$emit('loading', true);
-                $.ajax(this.$host.http_api + '/fcCommon/login.do', {
-                    data: {
-                        phone: this.mobile,
-                        companyId: this.companyId
-                    },
-                    crossDomain: true,
-                    success: ((res) => {
-                        if (res.msg === 'ERROR') {
-                            this.$toast("登录失败");
-                            return;
-                        }
-                        localStorage.setItem('userInfo', JSON.stringify(res.data));
-                        this.$eventHub.$emit('loading', false);
-                        this.$router.push('/home')
-                    })
-                })
-            }
-        },
-        // 校验短信验证码
-        checkSms() {
+            // 校验短信验证码
             if (this.code == '') {
                 this.$toast("请获取验证码");
-                return false;
+                return;
             };
             $.ajax(this.$host.http_api + '/fcCommon/checkSms.do', {
                 data: {
                     checkCode: this.code,
                     companyId: this.companyId
                 },
-                // xhrFields: { 
-                //     withCredentials: true //允许带上凭据
-                // },
+                xhrFields: { 
+                    withCredentials: true //允许带上凭据
+                },
                 crossDomain: true,
                 success: ((res) => {
-                    console.log(res);
                     if (res.msg !== 'SUCCESS') {
                         this.$toast("验证码错误");
-                        return false;
+                        return;
                     }
+
+                    this.$eventHub.$emit('loading', true);
+                    $.ajax(this.$host.http_api + '/fcCommon/login.do', {
+                        data: {
+                            phone: this.mobile,
+                            companyId: this.companyId
+                        },
+                        xhrFields: { 
+                            withCredentials: true //允许带上凭据
+                        },
+                        crossDomain: true,
+                        success: ((res) => {
+                            if (res.msg === 'ERROR') {
+                                this.$toast("登录失败");
+                                return;
+                            }
+                            localStorage.setItem('userInfo', JSON.stringify(res.data));
+                            this.$eventHub.$emit('loading', false);
+                            this.$router.push('/home')
+                        })
+                    })
                 })
             })
-            return true;
         }
     }
 }

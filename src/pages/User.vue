@@ -41,10 +41,10 @@ export default {
     created () {
         let userInfo = JSON.parse(localStorage.getItem('userInfo'));
         if (userInfo) {
-            this.username = userInfo.userName;
-            this.mobile = userInfo.phone;
             this.companyName = userInfo.companyName;
-            this.userId = userInfo.userId;
+            this.username = userInfo.users.userName;
+            this.mobile = userInfo.users.phone;
+            this.userId = userInfo.users.userId;
         }
     },
     methods: {

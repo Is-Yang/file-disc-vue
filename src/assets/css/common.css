@@ -84,22 +84,38 @@
     .flex-align-center {
         align-items: center;
     }
+
+    .flex1 {
+        flex: 1;
+    }
+
+    .text-over {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
     
     .padding-10 {
         padding: 10px;
     }
     
     .van-icon-set {
-        width: 2rem;
-        height: 2rem;
+        width: 1.8rem;
+        height: 1.8rem;
         background-size: contain;
         background-repeat: no-repeat;
         vertical-align: middle;
         display: inline-block;
-        margin-right: 1rem;
+        margin-right: 0.8rem;
+    }
+
+    .van-icon-folder {
+        background-image: url("../image/icon_folder.png");
     }
     
-    .van-icon-file {
+    .van-icon-file,
+    .van-icon-undefined,
+    .van-icon-null {
         background-image: url("../image/icon_file.png");
     }
     

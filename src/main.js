@@ -6,7 +6,8 @@ import 'vant/lib/index.css';
 import 'vant/lib/icon/local.css';
 import './assets/css/common.css';
 import {
-  Toast
+  Toast,
+  Dialog 
 } from 'vant';
 
 import component from './components/index'
@@ -14,6 +15,7 @@ import host from './host'
 
 Vue.use(Vant);
 Vue.use(Toast);
+Vue.use(Dialog);
 Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue()
 Vue.prototype.$host = host;
 Vue.prototype.$eventHub = Vue.prototype.$eventHub || new Vue()

@@ -4,13 +4,13 @@
         <div slot="action" @click="searchFile">搜索</div>
     </van-search> -->
     <van-list class="list-wrap">
-      <van-cell>
-          <van-row type="flex" justify="space-between" v-for="(item, index) in companyList" :key="index">
+      <van-cell v-for="(item, index) in companyList" :key="index" @click="updateCompany(item)">
+          <van-row type="flex" justify="space-between">
               <van-col class="flex">
                   <span>{{item.companyName}}</span>
               </van-col>
               <van-col>
-                  <a href="javascript:;" class="a-link" @click="updateCompany(item.companyId)">换到此公司</a>
+                  <a href="javascript:;" class="a-link">换到此公司</a>
               </van-col>
           </van-row>
       </van-cell>
@@ -46,11 +46,11 @@ export default {
             })
         })
     },
-    updateCompany(companyId) {
+    updateCompany(data) {
       this.$eventHub.$emit('loading', true);
         $.ajax(this.$host.http_api + '/fcCommon/updateLoginCompany.do', {
             data: {
-                companyId: companyId
+                companyId: data.companyId
             },
             crossDomain: true,
             // xhrFields: { 
@@ -61,7 +61,11 @@ export default {
                 this.$eventHub.$emit('loading', false);
                 if (res.msg == 'SUCCESS') {
                     this.$toast("操作成功～");
-                    this.init();
+                    let userInfo = localStorage.getItem('userInfo') && JSON.parse(localStorage.getItem('userInfo'));
+                    userInfo.companyName = data.companyName;
+                    userInfo.users.currenCompanyId = data.companyId;
+                    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                    this.$router.push('/home');
                 }
             })
         })
